@@ -15,14 +15,14 @@ def save_uploadedfile(uploadedfile):
         f.write(uploadedfile.getbuffer())
     return st.success(f"Saved File: {uploadedfile.name} to {UPLOAD_DIR}")
 
-def summarize_pdf(filepath):
+def textof(filepath):
     
     pdf_processor = Pdf_to_Text(filepath)
     text = pdf_processor.processpdf()
     return text
 
-st.title("PDF Summarization")
-st.write("This app converts PDFs to summaries (using a placeholder).")
+st.title("PDF to Data Converter")
+st.write("This app converts PDFs to Data points to a downloadable format")
 
 uploaded_file = st.file_uploader("Choose a PDF file", type=['pdf'])
 
@@ -31,8 +31,6 @@ if uploaded_file is not None:
     
         # Summarization logic triggered by button (placeholder)
         if st.button("Summarize"):
-            summary = summarize_pdf("/Users/trish/Downloads/ml/ps/Streamlit app/"+UPLOAD_DIR+"/"+uploaded_file.name)
-            print(type(summary))
-            st.write("Sumarised Text:" , summary)
-            # st.success(summary)
+            texts = textof("/Users/trish/Downloads/ml/ps/Streamlit app/"+UPLOAD_DIR+"/"+uploaded_file.name)
+            st.write("Sumarised Text:" , texts)
 
