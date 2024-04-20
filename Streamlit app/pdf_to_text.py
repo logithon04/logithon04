@@ -15,7 +15,7 @@ import os
 # Import PYmuPDF
 import fitz 
 #importing BART
-from transformers import BartForConditionalGeneration, BartTokenizer
+
 # Library for formatting text
 import textwrap
 
@@ -89,30 +89,15 @@ class Pdf_to_Text:
         text = pytesseract.image_to_string(img)
         return text
     
-    def text_summarizer_from_pdf(self , result):
-        pdf_text = result
-
-        model_name = "facebook/bart-large-cnn"
-        model = BartForConditionalGeneration.from_pretrained(model_name)
-        tokenizer = BartTokenizer.from_pretrained(model_name)
-
-        inputs = tokenizer.encode("summarize: " + pdf_text, return_tensors="pt", max_length=2048, truncation=True)
-        summary_ids = model.generate(inputs, max_length=5000, min_length=500, length_penalty=3.0, num_beams=4, early_stopping=True)
-
-        summary = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
-        formatted_summary = "\n".join(textwrap.wrap(summary, width=80))
-        return formatted_summary
-        # print(formatted_summary)
-    
     def processpdf(self):
         pdfFileObj = open(self.pdf_path, 'rb')
         # create a PDF reader object
         pdfReaded = PyPDF2.PdfReader(pdfFileObj)
-        page_summaries = []
         self.lower_side = 0  # Define lower_side outside of the loop
         self.upper_side = 0  #
         # Create the dictionary to extract text from each image
         text_per_page = {}
+        strig  = ""
         # We extract the pages from the PDF
         for pagenum, page in enumerate(extract_pages(self.pdf_path)):
         # Initialize the variables needed for the text extraction from the page
@@ -207,40 +192,15 @@ class Pdf_to_Text:
             dctkey = 'Page_'+ str(pagenum)
             # Add the list of list as the value of the page key
             text_per_page[dctkey] = [page_text, line_format, text_from_images,text_from_tables, page_content]
-
+            strig+= '\n'.join(page_content) + "\n"
     # Closing the pdf file object
         pdfFileObj.close()
 
         # Deleting the additional files created
-        os.remove('cropped_image.pdf')
-        os.remove('PDF_image.png')
+        if os.path.exists('cropped_image.pdf'):
+            os.remove('cropped_image.pdf')
+        if os.path.exists('PDF_image.png'):
+            os.remove('PDF_image.png')
         
         result = ''.join(text_per_page['Page_0'][4])
-        
-        l = self.text_summarizer_from_pdf(result)
-        return l
-
-
-        # # Display the content of the page
-        # for key, value in text_per_page.items():
-        #     # Extract the text content of the page
-        #     page_content = ''.join(value[4])
-
-        #     # Initialize the BART summarizer
-        #     summarizer = BartForConditionalGeneration.from_pretrained("facebook/bart-large-cnn")
-        #     tokenizer = BartTokenizer.from_pretrained("facebook/bart-large-cnn")
-
-        #     # Tokenize the page content
-        #     inputs = tokenizer.encode("summarize: " + page_content, return_tensors="pt", max_length=2048, truncation=True)
-
-        #     # Generate the summary
-        #     summary_ids = summarizer.generate(inputs, max_length=5000, min_length=500, length_penalty=3.0, num_beams=4, early_stopping=True)
-        #     summary = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
-
-        #     # Append the summary to the list of page summaries
-        #     page_summaries.append(summary)
-
-        # # Combine all page summaries into a single string
-        # combined_summary = '\n'.join(page_summaries)
-
-        # return combined_summary
+        return strig
